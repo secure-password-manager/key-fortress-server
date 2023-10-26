@@ -26,8 +26,6 @@ load_dotenv(find_dotenv())
 
 SECRET_KEY = os.environ['SECRET_KEY']
 
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
