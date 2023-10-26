@@ -1,1 +1,11 @@
+# Virtual environment
 .venv
+
+# Environment variables
+.env
+
+# Jetbrains IDEs
+.idea/
+
+# Python
+**/__pycache__/
