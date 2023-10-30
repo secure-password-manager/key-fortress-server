@@ -51,10 +51,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class UserKey(models.Model):
-    user_key = models.OneToOneField(
+    user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        primary_key=True,
     )
     encrypted_symmetric_key = models.CharField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,7 +70,7 @@ class VaultCollection(models.Model):
 
 
 class VaultItem(models.Model):
-    vault = models.ForeignKey(
+    vault_collection = models.ForeignKey(
         VaultCollection,
         on_delete=models.CASCADE,
     )
