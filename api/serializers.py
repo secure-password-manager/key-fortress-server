@@ -4,7 +4,7 @@ from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.serializers import Serializer, CharField, EmailField
 
 
-class LoginSerializer(Serializer): # noqa
+class LoginSerializer(Serializer):
     email = EmailField(required=True)
     password = CharField(required=True)
 

@@ -93,3 +93,14 @@ class TestLoginAPIView(APITestCase):
         self.assertIn('This field may not be blank.', response.data['password'])
         self.assertNotIn('csrftoken', response.cookies)
         self.assertNotIn('sessionid', response.cookies)
+
+    def test_login_email_and_password_blank(self):
+        response = self.client.post(self.login_url, {
+            'email': '',
+            'password': ''
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('This field may not be blank.', response.data['email'])
+        self.assertIn('This field may not be blank.', response.data['password'])
+        self.assertNotIn('csrftoken', response.cookies)
+        self.assertNotIn('sessionid', response.cookies)
