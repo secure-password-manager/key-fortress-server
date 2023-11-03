@@ -43,4 +43,6 @@ class VaultItemAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         saved = serializer.save()
         vault_item = VaultItemSerializer(saved)
-        return Response({str(vault_item.data['uuid']): vault_item.data}, status=status.HTTP_200_OK)
+        return Response(
+            {str(vault_item.data['uuid']): vault_item.data},
+            status=status.HTTP_200_OK)
