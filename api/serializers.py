@@ -12,14 +12,11 @@ class LoginSerializer(Serializer):
         email = data.get('email')
         password = data.get('password')
 
-        if email and password:
-            user = authenticate(request=self.context.get('request'),
-                                email=email,
-                                password=password)
-            if user is None:
-                raise AuthenticationFailed('Invalid email or password')
-        else:
-            raise ValidationError()
+        user = authenticate(request=self.context.get('request'),
+                            email=email,
+                            password=password)
+        if user is None:
+            raise AuthenticationFailed('Invalid email or password')
 
         data['user'] = user
         return data
