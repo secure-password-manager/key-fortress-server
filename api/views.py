@@ -1,4 +1,4 @@
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -19,6 +19,13 @@ class LoginAPIView(APIView):
 
         user = serializer.validated_data['user']
         login(request, user)
+        return Response(status=status.HTTP_200_OK)
+
+
+class LogoutAPIView(APIView):
+
+    def post(self, request):
+        logout(request)
         return Response(status=status.HTTP_200_OK)
 
 
