@@ -35,15 +35,11 @@ class VaultItemSerializer(Serializer):
 
     def validate(self, data):
         current_user = self.context['request'].user
-        encrypted_data = data.get('encrypted_data')
-        vault_collection_uuid = data.get('vault_collection_uuid')
 
-        if not (encrypted_data and vault_collection_uuid):
-            raise ValidationError()
         vault_collection = get_object_or_404(
             VaultCollection,
             user_id=current_user.id,
-            uuid=vault_collection_uuid
+            uuid=data.get('vault_collection_uuid')
         )
 
         return {
