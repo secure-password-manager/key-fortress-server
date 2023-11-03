@@ -12,7 +12,7 @@ class LoginAPIView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
-    def post(self, request): # noqa
+    def post(self, request):
 
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
