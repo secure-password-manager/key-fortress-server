@@ -1,11 +1,13 @@
-from django.contrib.auth import login, logout
+from django.contrib.auth import get_user_model, login, logout
 
 from rest_framework import status
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, CreateVaultItemSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, SignupSerializer,\
+    VaultItemSerializer
 
 
 class LoginAPIView(APIView):
@@ -29,11 +31,12 @@ class LogoutAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
-class TestView(APIView):
+class SignupAPIView(CreateAPIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
-    def get(self, request):  # noqa
-        return Response(data={'detail': 'Congratulations! You are an authenticated user!'},
-                        status=status.HTTP_200_OK)
+    model = get_user_model()
+    serializer_class = SignupSerializer
 
 
 class VaultItemAPIView(APIView):
