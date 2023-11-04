@@ -12,6 +12,7 @@ urlpatterns = [
     path('logout/', LogoutAPIView.as_view(), name='logout'),
     path('test/', TestView.as_view(), name='test'),
     path('api/vault_item/', VaultItemAPIView.as_view(), name='vault_item'),
+    path('api/vault_items/', VaultItemAPIView.as_view(), name='vault_items'),
 ]
 
 urlpatterns.extend(router.urls)

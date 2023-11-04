@@ -50,3 +50,12 @@ class CreateVaultItemSerializer(Serializer):
             'encrypted_data': data.get('encrypted_data'),
             'vault_collection_id': vault_collection.id
         }
+
+
+class GetVaultItemsSerializer(Serializer):
+
+    def to_representation(self, instance):
+        result_dict = {}
+        for item in instance:
+            result_dict[str(item["uuid"])] = item
+        return result_dict

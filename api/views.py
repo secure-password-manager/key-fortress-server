@@ -1,11 +1,13 @@
 from django.contrib.auth import login, logout
+from django.db.models import F
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, CreateVaultItemSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, GetVaultItemsSerializer, VaultItemSerializer
+from api.models import VaultItem
 
 
 class LoginAPIView(APIView):
@@ -37,6 +39,16 @@ class TestView(APIView):
 
 
 class VaultItemAPIView(APIView):
+    model = VaultItem
+
+    def get(self, request):
+        result = VaultItem.objects.filter(
+            vault_collection__user_id=request.user.id
+        ).values('uuid', 'encrypted_data', 'created_at', 'modified_at', vault_collection_uuid=F('vault_collection__uuid'),)
+        serializer = GetVaultItemsSerializer(result)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def post(self, request):
         serializer = CreateVaultItemSerializer(
             data=request.data, context={'request': request})
