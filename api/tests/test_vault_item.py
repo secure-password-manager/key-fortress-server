@@ -134,7 +134,7 @@ class TestCreateVaultItemAPIView(APITestCase):
             vault_collection_id=self.vault_collection2.id)
         self.assertEqual(len(vault_item), 0)
 
-    def test_vault_item_create_user_not_logged_in(self):
+    def test_vault_item_create_user_not_authenticated(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         self.client.logout()
         response = self.client.post(self.vault_item_url, {
@@ -201,6 +201,8 @@ class TestGetVaultItemAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
 
-    def test_vault_items_get_failure(self):
+    def test_vault_items_get_user_not_authenticated(self):
+        self.client.login(email='pippa3@gmail.com', password='super-password')
+        self.client.logout()
         response = self.client.get(self.vault_items_url)
         self.assertEqual(response.status_code, 403)
