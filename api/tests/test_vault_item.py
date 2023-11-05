@@ -11,32 +11,32 @@ class TestCreateVaultItemAPIView(APITestCase):
     def setUp(self):
         self.vault_item_url = reverse('vault_item')
 
-        self.user_data1 = {
+        self.user_data = {
             'email': 'pippa1@gmail.com',
             'password': 'super-password'
         }
-        self.user1 = get_user_model().objects.create_user(**self.user_data1)
-        self.vault_collection1 = VaultCollection.objects.create(
-            name='folder1', user_id=self.user1.id)
+        self.user = get_user_model().objects.create_user(**self.user_data)
+        self.vault_collection = VaultCollection.objects.create(
+            name='folder1', user_id=self.user.id)
 
-        self.user_data2 = {
+        self.other_user_data = {
             'email': 'pippa2@gmail.com',
             'password': 'super-password'
         }
-        self.user2 = get_user_model().objects.create_user(**self.user_data2)
-        self.vault_collection2 = VaultCollection.objects.create(
-            name='folder2', user_id=self.user2.id)
+        self.other_user = get_user_model().objects.create_user(**self.other_user_data)
+        self.other_user_vc = VaultCollection.objects.create(
+            name='folder2', user_id=self.other_user.id)
 
     def test_vault_item_create_success(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         response = self.client.post(self.vault_item_url, {
             'encrypted_data': 'encrypted data',
-            'vault_collection_uuid': self.vault_collection1.uuid
+            'vault_collection_uuid': self.vault_collection.uuid
         })
 
         self.assertEqual(response.status_code, 200)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 1)
         self.assertIn(str(vault_item.first().uuid), response.data)
 
@@ -47,17 +47,17 @@ class TestCreateVaultItemAPIView(APITestCase):
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_encrypted_data_missing(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         response = self.client.post(self.vault_item_url, {
-            'vault_collection_uuid': self.vault_collection1.uuid
+            'vault_collection_uuid': self.vault_collection.uuid
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_encrypted_data_uuid_missing(self):
@@ -65,18 +65,18 @@ class TestCreateVaultItemAPIView(APITestCase):
         response = self.client.post(self.vault_item_url, {})
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_encrypted_data_blank(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         response = self.client.post(self.vault_item_url, {
             'encrypted_data': '',
-            'vault_collection_uuid': self.vault_collection1.uuid
+            'vault_collection_uuid': self.vault_collection.uuid
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_vault_collection_uuid_blank(self):
@@ -87,7 +87,7 @@ class TestCreateVaultItemAPIView(APITestCase):
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_encrypted_data_vault_collection_uuid_blank(self):
@@ -98,7 +98,7 @@ class TestCreateVaultItemAPIView(APITestCase):
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_vault_collection_not_exist(self):
@@ -109,7 +109,7 @@ class TestCreateVaultItemAPIView(APITestCase):
         })
         self.assertEqual(response.status_code, 404)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_vault_collection_uuid_invalid(self):
@@ -120,18 +120,18 @@ class TestCreateVaultItemAPIView(APITestCase):
         })
         self.assertEqual(response.status_code, 400)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_vault_collection_belongs_to_other_user(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         response = self.client.post(self.vault_item_url, {
             'encrypted_data': 'encrypted data',
-            'vault_collection_uuid': self.vault_collection2.uuid
+            'vault_collection_uuid': self.other_user_vc.uuid
         })
         self.assertEqual(response.status_code, 404)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection2.id)
+            vault_collection_id=self.other_user_vc.id)
         self.assertEqual(len(vault_item), 0)
 
     def test_vault_item_create_user_not_logged_in(self):
@@ -139,11 +139,11 @@ class TestCreateVaultItemAPIView(APITestCase):
         self.client.logout()
         response = self.client.post(self.vault_item_url, {
             'encrypted_data': 'encrypted data',
-            'vault_collection_uuid': self.vault_collection1.uuid
+            'vault_collection_uuid': self.vault_collection.uuid
         })
         self.assertEqual(response.status_code, 403)
         vault_item = VaultItem.objects.filter(
-            vault_collection_id=self.vault_collection1.id)
+            vault_collection_id=self.vault_collection.id)
         self.assertEqual(len(vault_item), 0)
 
 
