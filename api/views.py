@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, VaultItemSerializer
 
 
 class LoginAPIView(APIView):
@@ -31,15 +31,16 @@ class LogoutAPIView(APIView):
 
 class TestView(APIView):
 
-    def get(self, request): # noqa
+    def get(self, request):  # noqa
         return Response(data={'detail': 'Congratulations! You are an authenticated user!'},
                         status=status.HTTP_200_OK)
 
 
 class VaultItemAPIView(APIView):
     def post(self, request):
-        serializer = VaultItemSerializer(data=request.data, context={'request': request})
+        serializer = CreateVaultItemSerializer(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(status=status.HTTP_200_OK)
+        saved = serializer.save()
+        vault_item = VaultItemSerializer(saved)
+        return Response({str(vault_item.data['uuid']): vault_item.data}, status=status.HTTP_200_OK)

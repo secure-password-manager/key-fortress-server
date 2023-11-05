@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
-from rest_framework.serializers import Serializer, CharField, EmailField, UUIDField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, UUIDField
 
 from api.models import VaultItem, VaultCollection
 
@@ -25,7 +25,13 @@ class LoginSerializer(Serializer):
         return data
 
 
-class VaultItemSerializer(Serializer):
+class VaultItemSerializer(ModelSerializer):
+    class Meta:
+        model = VaultItem
+        fields = '__all__'
+
+
+class CreateVaultItemSerializer(Serializer):
 
     encrypted_data = CharField(required=True)
     vault_collection_uuid = UUIDField(required=True)
@@ -35,13 +41,11 @@ class VaultItemSerializer(Serializer):
 
     def validate(self, data):
         current_user = self.context['request'].user
-
         vault_collection = get_object_or_404(
             VaultCollection,
             user_id=current_user.id,
             uuid=data.get('vault_collection_uuid')
         )
-
         return {
             'encrypted_data': data.get('encrypted_data'),
             'vault_collection_id': vault_collection.id
