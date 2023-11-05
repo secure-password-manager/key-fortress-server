@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, CreateVaultItemSerializer, UpdateVaultItemSerializer, UUIDSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, DeleteVaultItemSerializer, UpdateVaultItemSerializer, UUIDSerializer, VaultItemSerializer
 from api.models import VaultItem
 
 
@@ -62,3 +62,12 @@ class VaultItemAPIView(APIView):
         return Response(
             {str(serialized_vault_item.data['uuid']): serialized_vault_item.data},
             status=status.HTTP_200_OK)
+
+    def delete(self, request, uuid):
+        uuid_serializer = UUIDSerializer(data={'uuid': uuid})
+        uuid_serializer.is_valid(raise_exception=True)
+        serializer = DeleteVaultItemSerializer(
+            data={'uuid': uuid}, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.delete(serializer.validated_data)
+        return Response({str(uuid): {}}, status=status.HTTP_200_OK)

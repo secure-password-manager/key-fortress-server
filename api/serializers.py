@@ -80,3 +80,20 @@ class UpdateVaultItemSerializer(ModelSerializer):
             'encrypted_data': data.get('encrypted_data'),
             'vault_collection_id': vault_item.vault_collection_id
         }
+
+
+class DeleteVaultItemSerializer(Serializer):
+    uuid = UUIDField(required=True)
+
+    def delete(self, validated_data):
+        vault_item = get_object_or_404(VaultItem, pk=validated_data.get('id'))
+        vault_item.delete()
+
+    def validate(self, data):
+        user = get_object_or_404(User, pk=self.context['request'].user.id)
+        vault_item = get_object_or_404(VaultItem, uuid=data.get('uuid'))
+
+        if vault_item.vault_collection.user != user:
+            raise NotFound()
+
+        return {'id': vault_item.id}
