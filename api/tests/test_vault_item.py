@@ -309,40 +309,38 @@ class TestUpdateVaultItemAPIView(APITestCase):
 class TestDeleteVaultItemAPIView(APITestCase):
 
     def setUp(self):
-        self.user_data1 = {
+        self.user_data = {
             'email': 'pippa1@gmail.com',
             'password': 'super-password'
         }
-        self.user1 = get_user_model().objects.create_user(**self.user_data1)
-        self.vault_collection1 = VaultCollection.objects.create(
-            name='folder1', user_id=self.user1.id)
-        self.encrypted_data1 = 'encrypted data 1'
-        self.vault_item1 = VaultItem.objects.create(
-            encrypted_data=self.encrypted_data1, vault_collection_id=self.vault_collection1.id)
-        self.vault_item_url1 = reverse('vault_item_uuid', kwargs={
-            'uuid': self.vault_item1.uuid})
+        self.user = get_user_model().objects.create_user(**self.user_data)
+        self.vault_collection = VaultCollection.objects.create(
+            name='folder1', user_id=self.user.id)
+        self.vault_item = VaultItem.objects.create(
+            encrypted_data='encrypted data', vault_collection_id=self.vault_collection.id)
+        self.vault_item_url = reverse('vault_item_uuid', kwargs={
+            'uuid': self.vault_item.uuid})
 
-        self.user_data2 = {
+        self.other_user_data = {
             'email': 'pippa2@gmail.com',
             'password': 'super-password'
         }
-        self.user2 = get_user_model().objects.create_user(**self.user_data2)
-        self.vault_collection2 = VaultCollection.objects.create(
-            name='folder2', user_id=self.user2.id)
-        self.encrypted_data2 = 'encrypted data 2'
-        self.vault_item2 = VaultItem.objects.create(
-            encrypted_data=self.encrypted_data2, vault_collection_id=self.vault_collection2.id)
-        self.vault_item_url2 = reverse('vault_item_uuid', kwargs={
-            'uuid': self.vault_item2.uuid})
+        self.other_user = get_user_model().objects.create_user(**self.other_user_data)
+        self.other_user_vc = VaultCollection.objects.create(
+            name='folder2', user_id=self.other_user.id)
+        self.other_user_vi = VaultItem.objects.create(
+            encrypted_data='encrypted data other user', vault_collection_id=self.other_user_vc.id)
+        self.other_user_vault_item_url = reverse('vault_item_uuid', kwargs={
+            'uuid': self.other_user_vi.uuid})
 
     def test_vault_item_delete_success(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
-        response = self.client.delete(self.vault_item_url1)
+        response = self.client.delete(self.vault_item_url)
         vault_item = VaultItem.objects.filter(
-            id=self.vault_item1.id)
+            id=self.vault_item.id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(vault_item), 0)
-        self.assertIn(str(self.vault_item1.uuid), response.data)
+        self.assertIn(str(self.vault_item.uuid), response.data)
 
     def test_vault_item_delete_vault_item_not_exist(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
@@ -350,23 +348,23 @@ class TestDeleteVaultItemAPIView(APITestCase):
             'uuid': '29dabaa2-69c9-44ed-ae4e-522150fcd840'})
         response = self.client.delete(vault_item_url)
         vault_item = VaultItem.objects.filter(
-            id=self.vault_item1.id)
+            id=self.vault_item.id)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(len(vault_item), 1)
 
     def test_vault_item_delete_vault_item_belongs_to_other_user(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
-        response = self.client.delete(self.vault_item_url2)
+        response = self.client.delete(self.other_user_vault_item_url)
         vault_item = VaultItem.objects.filter(
-            id=self.vault_item2.id)
+            id=self.other_user_vi.id)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(len(vault_item), 1)
 
     def test_vault_item_delete_user_not_logged_in(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         self.client.logout()
-        response = self.client.delete(self.vault_item_url1)
+        response = self.client.delete(self.vault_item_url)
         vault_item = VaultItem.objects.filter(
-            id=self.vault_item1.id)
+            id=self.vault_item.id)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(len(vault_item), 1)
