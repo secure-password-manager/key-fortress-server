@@ -7,10 +7,6 @@ from rest_framework.serializers import Serializer, ModelSerializer, CharField, E
 from api.models import User, VaultItem, VaultCollection
 
 
-class UUIDSerializer(Serializer):
-    uuid = UUIDField(required=True)
-
-
 class LoginSerializer(Serializer):
     email = EmailField(required=True)
     password = CharField(required=True)
@@ -56,12 +52,11 @@ class CreateVaultItemSerializer(Serializer):
 
 
 class UpdateVaultItemSerializer(ModelSerializer):
-    uuid = UUIDField(required=True)
     encrypted_data = CharField(required=True)
 
     class Meta:
         model = VaultItem
-        fields = ['uuid', 'encrypted_data']
+        fields = ['encrypted_data']
 
     def update(self, instance, validated_data):
         instance.encrypted_data = validated_data['encrypted_data']
@@ -70,7 +65,7 @@ class UpdateVaultItemSerializer(ModelSerializer):
 
     def validate(self, data):
         user = get_object_or_404(User, pk=self.context['request'].user.id)
-        vault_item = get_object_or_404(VaultItem, uuid=data.get('uuid'))
+        vault_item = get_object_or_404(VaultItem, uuid=self.context['uuid'])
 
         if vault_item.vault_collection.user != user:
             raise NotFound()

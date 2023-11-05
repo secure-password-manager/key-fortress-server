@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, CreateVaultItemSerializer, UpdateVaultItemSerializer, UUIDSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, UpdateVaultItemSerializer, VaultItemSerializer
 from api.models import VaultItem
 
 
@@ -50,12 +50,12 @@ class VaultItemAPIView(APIView):
             {str(vault_item.data['uuid']): vault_item.data},
             status=status.HTTP_200_OK)
 
-    def put(self, request):
-        uuid_serializer = UUIDSerializer(data=request.data)
-        uuid_serializer.is_valid(raise_exception=True)
-        vault_item = get_object_or_404(VaultItem, uuid=request.data['uuid'])
+    def put(self, request, uuid):
+        vault_item = get_object_or_404(VaultItem, uuid=uuid)
         serializer = UpdateVaultItemSerializer(
-            vault_item, data=request.data, context={'request': request})
+            vault_item,
+            data=request.data,
+            context={'request': request, 'uuid': uuid})
         serializer.is_valid(raise_exception=True)
         serialized_vault_item = VaultItemSerializer(serializer.save())
 
