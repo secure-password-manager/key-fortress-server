@@ -1,11 +1,13 @@
 from django.contrib.auth import login, logout
+from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import LoginSerializer, CreateVaultItemSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, CreateVaultItemSerializer, UpdateVaultItemSerializer, UUIDSerializer, VaultItemSerializer
+from api.models import VaultItem
 
 
 class LoginAPIView(APIView):
@@ -37,10 +39,26 @@ class TestView(APIView):
 
 
 class VaultItemAPIView(APIView):
+
     def post(self, request):
         serializer = CreateVaultItemSerializer(
             data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        saved = serializer.save()
-        vault_item = VaultItemSerializer(saved)
-        return Response({str(vault_item.data['uuid']): vault_item.data}, status=status.HTTP_200_OK)
+        vault_item = VaultItemSerializer(serializer.save())
+
+        return Response(
+            {str(vault_item.data['uuid']): vault_item.data},
+            status=status.HTTP_200_OK)
+
+    def put(self, request):
+        uuid_serializer = UUIDSerializer(data=request.data)
+        uuid_serializer.is_valid(raise_exception=True)
+        vault_item = get_object_or_404(VaultItem, uuid=request.data['uuid'])
+        serializer = UpdateVaultItemSerializer(
+            vault_item, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serialized_vault_item = VaultItemSerializer(serializer.save())
+
+        return Response(
+            {str(serialized_vault_item.data['uuid']): serialized_vault_item.data},
+            status=status.HTTP_200_OK)
