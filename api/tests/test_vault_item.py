@@ -33,7 +33,12 @@ class TestVaultItemAPIView(APITestCase):
             'encrypted_data': 'encrypted data',
             'vault_collection_uuid': self.vault_collection1.uuid
         })
+
         self.assertEqual(response.status_code, 200)
+        vault_item = VaultItem.objects.filter(
+            vault_collection_id=self.vault_collection1.id)
+        self.assertEqual(len(vault_item), 1)
+        self.assertIn(str(vault_item.first().uuid), response.data)
 
     def test_vault_item_creation_vault_collection_uuid_missing(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
