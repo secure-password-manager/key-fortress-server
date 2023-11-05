@@ -152,35 +152,35 @@ class TestGetVaultItemAPIView(APITestCase):
     def setUp(self):
         self.vault_items_url = reverse('vault_items')
 
-        self.user_data1 = {
+        self.user_data = {
             'email': 'pippa1@gmail.com',
             'password': 'super-password'
         }
-        self.user1 = get_user_model().objects.create_user(**self.user_data1)
-        self.vault_collection1 = VaultCollection.objects.create(
-            name='folder1', user_id=self.user1.id)
+        self.user = get_user_model().objects.create_user(**self.user_data)
+        self.vault_collection = VaultCollection.objects.create(
+            name='folder1', user_id=self.user.id)
         self.vault_item1 = VaultItem.objects.create(
-            encrypted_data='encrypted data 1', vault_collection_id=self.vault_collection1.id)
+            encrypted_data='encrypted data 1', vault_collection_id=self.vault_collection.id)
         self.vault_item2 = VaultItem.objects.create(
-            encrypted_data='encrypted data 2', vault_collection_id=self.vault_collection1.id)
+            encrypted_data='encrypted data 2', vault_collection_id=self.vault_collection.id)
 
-        self.user_data2 = {
+        self.other_user_data = {
             'email': 'pippa2@gmail.com',
             'password': 'super-password'
         }
-        self.user2 = get_user_model().objects.create_user(**self.user_data2)
-        self.vault_collection2 = VaultCollection.objects.create(
-            name='folder2', user_id=self.user2.id)
+        self.other_user = get_user_model().objects.create_user(**self.other_user_data)
+        self.other_user_vc = VaultCollection.objects.create(
+            name='folder2', user_id=self.other_user.id)
         self.vault_item3 = VaultItem.objects.create(
-            encrypted_data='encrypted data 3', vault_collection_id=self.vault_collection2.id)
+            encrypted_data='encrypted data 3', vault_collection_id=self.other_user_vc.id)
 
-        self.user_data3 = {
+        self.no_vi_user_data = {
             'email': 'pippa3@gmail.com',
             'password': 'super-password'
         }
-        self.user3 = get_user_model().objects.create_user(**self.user_data3)
-        self.vault_collection3 = VaultCollection.objects.create(
-            name='folder3', user_id=self.user3.id)
+        self.no_vi_user = get_user_model().objects.create_user(**self.no_vi_user_data)
+        self.no_vi_vault_collection = VaultCollection.objects.create(
+            name='folder3', user_id=self.no_vi_user.id)
 
     def test_vault_items_get_success(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
@@ -194,15 +194,13 @@ class TestGetVaultItemAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertIn(str(self.vault_item3.uuid), response.data)
-
-    def test_vault_items_get_no_vault_items(self):
         self.client.login(email='pippa3@gmail.com', password='super-password')
         response = self.client.get(self.vault_items_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 0)
 
     def test_vault_items_get_user_not_authenticated(self):
-        self.client.login(email='pippa3@gmail.com', password='super-password')
+        self.client.login(email='pippa1@gmail.com', password='super-password')
         self.client.logout()
         response = self.client.get(self.vault_items_url)
         self.assertEqual(response.status_code, 403)
