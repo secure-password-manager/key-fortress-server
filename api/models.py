@@ -59,6 +59,9 @@ class UserKey(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"User key for {self.user.email}"
+
 
 class VaultCollection(models.Model):
     user = models.ForeignKey(
@@ -68,6 +71,9 @@ class VaultCollection(models.Model):
     name = models.CharField()
     uuid = models.UUIDField(
         primary_key=False, default=uuid.uuid4, editable=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class VaultItem(models.Model):
