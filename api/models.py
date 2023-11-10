@@ -66,7 +66,8 @@ class VaultCollection(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField()
-    uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(
+        primary_key=False, default=uuid.uuid4, editable=False, unique=True)
 
 
 class VaultItem(models.Model):
@@ -75,7 +76,7 @@ class VaultItem(models.Model):
         on_delete=models.CASCADE,
     )
     encrypted_data = models.CharField()
-    uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(
+        primary_key=False, default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-
