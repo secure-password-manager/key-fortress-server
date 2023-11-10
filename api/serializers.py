@@ -1,8 +1,8 @@
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
-from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
-from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, UUIDField
+from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, UUIDField, SlugRelatedField
 
 from api.models import User, VaultItem, VaultCollection
 
@@ -26,52 +26,15 @@ class LoginSerializer(Serializer):
 
 
 class VaultItemSerializer(ModelSerializer):
-    class Meta:
-        model = VaultItem
-        fields = '__all__'
-
-
-class CreateVaultItemSerializer(Serializer):
-    encrypted_data = CharField(required=True)
-    vault_collection_uuid = UUIDField(required=True)
-
-    def create(self, validated_data):
-        return VaultItem.objects.create(**validated_data)
-
-    def validate(self, data):
-        current_user = self.context['request'].user
-        vault_collection = get_object_or_404(
-            VaultCollection,
-            user_id=current_user.id,
-            uuid=data.get('vault_collection_uuid')
-        )
-        return {
-            'encrypted_data': data.get('encrypted_data'),
-            'vault_collection_id': vault_collection.id
-        }
-
-
-class UpdateVaultItemSerializer(ModelSerializer):
-    encrypted_data = CharField(required=True)
+    # This automatically looks up related VaultCollections when both serializing and deserializing
+    # JSON payloads would use 'vault_collection' for the uuid field, not 'vault_collection_uuid'
+    vault_collection = SlugRelatedField(
+        slug_field='uuid', queryset=VaultCollection.objects.all())
 
     class Meta:
         model = VaultItem
-        fields = ['encrypted_data']
+        fields = ['encrypted_data', 'uuid',
+                  'vault_collection', 'created_at', 'modified_at']
 
-    def update(self, instance, validated_data):
-        instance.encrypted_data = validated_data['encrypted_data']
-        instance.save()
-        return instance
-
-    def validate(self, data):
-        user = get_object_or_404(User, pk=self.context['request'].user.id)
-        vault_item = get_object_or_404(VaultItem, uuid=self.context['uuid'])
-
-        if vault_item.vault_collection.user != user:
-            raise NotFound()
-
-        return {
-            'id': vault_item.id,
-            'encrypted_data': data.get('encrypted_data'),
-            'vault_collection_id': vault_item.vault_collection_id
-        }
+        # Means that these fields are not expected on write requests but are returned on reads
+        read_only_fields = ['created_at', 'modified_at']
