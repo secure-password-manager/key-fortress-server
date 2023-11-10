@@ -2,30 +2,9 @@ from django.contrib.auth import authenticate, get_user_model
 from django.shortcuts import get_object_or_404
 
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.serializers import CharField, EmailField, ModelSerializer, Serializer, UUIDField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, UUIDField, SlugRelatedField
 
 from api.models import UserKey, VaultItem, VaultCollection
-
-
-class CreateVaultItemSerializer(Serializer):
-
-    encrypted_data = CharField(required=True)
-    vault_collection_uuid = UUIDField(required=True)
-
-    def create(self, validated_data):
-        return VaultItem.objects.create(**validated_data)
-
-    def validate(self, data):
-        current_user = self.context['request'].user
-        vault_collection = get_object_or_404(
-            VaultCollection,
-            user_id=current_user.id,
-            uuid=data.get('vault_collection_uuid')
-        )
-        return {
-            'encrypted_data': data.get('encrypted_data'),
-            'vault_collection_id': vault_collection.id
-        }
 
 
 class LoginSerializer(Serializer):
@@ -64,6 +43,15 @@ class SignupSerializer(ModelSerializer):
 
 
 class VaultItemSerializer(ModelSerializer):
+    # This automatically looks up related VaultCollections when both serializing and deserializing
+    # JSON payloads would use 'vault_collection' for the uuid field, not 'vault_collection_uuid'
+    vault_collection = SlugRelatedField(
+        slug_field='uuid', queryset=VaultCollection.objects.all())
+
     class Meta:
         model = VaultItem
-        fields = '__all__'
+        fields = ['encrypted_data', 'uuid',
+                  'vault_collection', 'created_at', 'modified_at']
+
+        # Means that these fields are not expected on write requests but are returned on reads
+        read_only_fields = ['created_at', 'modified_at']
