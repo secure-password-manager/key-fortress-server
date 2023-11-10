@@ -74,12 +74,6 @@ class VaultItemViewSet(ModelViewSet):
         self.validate_vault_collection(serializer)
         super().perform_create(serializer)
 
-    def perform_destroy(self, instance):
-        if instance.vault_collection.user != self.request.user:
-            raise PermissionDenied(
-                detail='User does not own VaultCollection', code=status.HTTP_403_FORBIDDEN)
-        instance.delete()
-
     # Formats the output of list GET requests as a dict instead of a list
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
