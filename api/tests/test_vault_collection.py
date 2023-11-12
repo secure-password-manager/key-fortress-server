@@ -217,3 +217,82 @@ class TestUpdateVaultCollectionViewSet(APITestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             vault_collection.name, self.collection_name)
+
+
+class TestDeleteVaultCollectionViewSet(APITestCase):
+
+    def setUp(self):
+        self.user_data = {
+            'email': 'pippa1@gmail.com',
+            'password': 'super-password'
+        }
+        self.user = get_user_model().objects.create_user(**self.user_data)
+        self.vault_collection = VaultCollection.objects.create(
+            name='folder1', user_id=self.user.id)
+        self.vault_item = VaultItem.objects.create(
+            encrypted_data='encrypted data', vault_collection_id=self.vault_collection.id)
+        self.vault_collection_url = reverse('vault_collection-detail', kwargs={
+            'uuid': self.vault_collection.uuid})
+
+    def test_vault_collection_delete_success(self):
+        self.client.login(email='pippa1@gmail.com', password='super-password')
+        response = self.client.delete(self.vault_collection_url)
+        self.assertEqual(response.status_code, 204)
+        vault_collection = VaultCollection.objects.filter(
+            id=self.vault_collection.id)
+        vault_item = VaultItem.objects.filter(
+            id=self.vault_item.id)
+        self.assertEqual(len(vault_collection), 0)
+        self.assertEqual(len(vault_item), 0)
+
+    def test_vault_collection_delete_collection_not_exist(self):
+        self.client.login(email='pippa1@gmail.com', password='super-password')
+        vault_collection_url = reverse('vault_collection-detail', kwargs={
+            'uuid': '29dabaa2-69c9-44ed-ae4e-522150fcd840'})
+        response = self.client.delete(vault_collection_url)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn('Not found.', response.data['detail'])
+
+    def test_vault_collection_delete_uuid_invalid(self):
+        self.client.login(email='pippa1@gmail.com', password='super-password')
+        vault_collection_url = reverse('vault_collection-detail', kwargs={
+            'uuid': 'BADUUID!-69c9-44ed-ae4e-522150fcd840'})
+        response = self.client.delete(vault_collection_url)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn('Not found.', response.data['detail'])
+
+    def test_vault_collection_delete_collection_belongs_to_other_user(self):
+        other_user_data = {
+            'email': 'pippa2@gmail.com',
+            'password': 'super-password'
+        }
+        other_user = get_user_model().objects.create_user(**other_user_data)
+        other_user_vc = VaultCollection.objects.create(
+            name='folder1', user_id=other_user.id)
+        other_user_vi = VaultItem.objects.create(
+            encrypted_data='encrypted data other user', vault_collection_id=other_user_vc.id)
+        other_user_vc_url = reverse('vault_collection-detail', kwargs={
+            'uuid': other_user_vc.uuid})
+
+        self.client.login(email='pippa1@gmail.com', password='super-password')
+        response = self.client.delete(other_user_vc_url)
+        vault_collection = VaultCollection.objects.filter(
+            id=other_user_vc.id)
+        vault_item = VaultItem.objects.filter(id=other_user_vi.id)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(len(vault_collection), 1)
+        self.assertEqual(len(vault_item), 1)
+
+    def test_vault_collection_delete_user_not_logged_in(self):
+        self.client.login(email='pippa1@gmail.com', password='super-password')
+        self.client.logout()
+        response = self.client.delete(self.vault_collection_url)
+        vault_collection = VaultCollection.objects.filter(
+            id=self.vault_collection.id)
+        vault_item = VaultItem.objects.filter(
+            id=self.vault_item.id)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(len(vault_collection), 1)
+        self.assertEqual(len(vault_item), 1)
+        self.assertIn(
+            'Authentication credentials were not provided.', response.data['detail'])
