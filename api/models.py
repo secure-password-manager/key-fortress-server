@@ -10,7 +10,8 @@ class UserManager(BaseUserManager):
             raise ValueError('Users must have an email address')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, is_staff=is_staff, is_superuser=is_superuser, **extra_fields)
+        user = self.model(email=email, is_staff=is_staff,
+                          is_superuser=is_superuser, **extra_fields)
         user.set_password(password)
         user.save(using=self.db)
 
@@ -80,6 +81,7 @@ class VaultItem(models.Model):
     vault_collection = models.ForeignKey(
         VaultCollection,
         on_delete=models.CASCADE,
+        related_name='vault_items'
     )
     encrypted_data = models.CharField()
     uuid = models.UUIDField(

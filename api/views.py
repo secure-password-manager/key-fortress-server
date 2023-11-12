@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .serializers import LoginSerializer, SignupSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, SignupSerializer, VaultCollectionSerializer, VaultItemSerializer
 
 from api.models import VaultItem, VaultCollection
 
@@ -79,3 +79,22 @@ class VaultItemViewSet(ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response({item['uuid']: item for item in serializer.data})
+
+
+class VaultCollectionViewSet(ModelViewSet):
+    # setting this as serializer_class when allow the serializer
+    # to be called for every API request
+    serializer_class = VaultCollectionSerializer
+    # Overridden by get_queryset() but still required
+    queryset = VaultCollection.objects.prefetch_related('vault_items').all()
+    lookup_field = 'uuid'  # VaultCollections are looked up by uuid rather than pk
+
+    # Overrides the ViewSet queryset attribute to ensure users can only access their own VaultItems
+    # Results in a 404 if a user tries to list, retrieve, put, or delete a VaultItem they don't own
+
+    def get_queryset(self):
+        queryset = super(VaultCollectionViewSet, self).get_queryset()
+        return queryset.filter(user_id=self.request.user.id)
+
+    def perform_create(self, serializer):
+        serializer.save(context={'request': self.request})

@@ -1,10 +1,10 @@
 from django.contrib.auth import authenticate, get_user_model
-from django.shortcuts import get_object_or_404
+from django.db import models
 
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, UUIDField, SlugRelatedField
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, PrimaryKeyRelatedField, SlugRelatedField
 
-from api.models import UserKey, VaultItem, VaultCollection
+from api.models import User, UserKey, VaultItem, VaultCollection
 
 
 class LoginSerializer(Serializer):
@@ -55,3 +55,15 @@ class VaultItemSerializer(ModelSerializer):
 
         # Means that these fields are not expected on write requests but are returned on reads
         read_only_fields = ['created_at', 'modified_at']
+
+
+class VaultCollectionSerializer(ModelSerializer):
+    vault_items = VaultItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = VaultCollection
+        fields = ['name', 'uuid', 'vault_items']
+
+    def save(self, **kwargs):
+        self.validated_data['user_id'] = self.context['request'].user.id
+        return super().save()
