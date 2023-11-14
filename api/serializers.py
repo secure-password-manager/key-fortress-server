@@ -58,11 +58,9 @@ class VaultItemSerializer(ModelSerializer):
 
 
 class VaultCollectionSerializer(ModelSerializer):
-    vault_items = VaultItemSerializer(many=True, read_only=True)
-
     class Meta:
         model = VaultCollection
-        fields = ['name', 'uuid', 'vault_items']
+        fields = ['name', 'uuid']
 
     def save(self, **kwargs):
         self.validated_data['user_id'] = self.context['request'].user.id

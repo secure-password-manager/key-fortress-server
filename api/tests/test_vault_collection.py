@@ -86,7 +86,6 @@ class TestGetVaultCollectionViewSet(APITestCase):
         response = self.client.get(self.vault_collections_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(len(response.data[0]['vault_items']), 2)
 
         user_data = {
             'email': 'pippa2@gmail.com',
