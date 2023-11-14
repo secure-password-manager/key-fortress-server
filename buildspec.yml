@@ -1,0 +1,46 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    DJANGO_SETTINGS_MODULE: "prod/key_fortress:DJANGO_SETTINGS_MODULE"
+    SECRET_KEY: "prod/key_fortress:SECRET_KEY"
+    DATABASE_ENGINE: "prod/key_fortress:DATABASE_ENGINE"
+    DATABASE_NAME: "prod/key_fortress:DATABASE_NAME"
+    DATABASE_USER: "prod/key_fortress:DATABASE_USER"
+    DATABASE_PASSWORD: "prod/key_fortress:DATABASE_PASSWORD"
+    DATABASE_HOST: "prod/key_fortress:DATABASE_HOST"
+    DATABASE_PORT: "prod/key_fortress:DATABASE_PORT"
+
+phases:
+  pre_build:
+    commands:
+      - CONFIG_PATH=".ebextensions/01_env.config"
+      - SINGLETAB="    "
+      - DOUBLETAB="        "
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Generating environment variable config file...
+      - >
+        echo option_settings:$'\n'"$SINGLETAB"aws:elasticbeanstalk:application:environment: > $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DJANGO_SETTINGS_MODULE: "$DJANGO_SETTINGS_MODULE" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"SECRET_KEY: "'$SECRET_KEY'" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_ENGINE: "$DATABASE_ENGINE" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_NAME: "$DATABASE_NAME" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_USER: "$DATABASE_USER" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_PASSWORD: "'$DATABASE_PASSWORD'" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_HOST: "$DATABASE_HOST" >> $CONFIG_PATH
+      - >
+        echo "$DOUBLETAB"DATABASE_PORT: "$DATABASE_PORT" >> $CONFIG_PATH
+
+artifacts:
+  files:
+    - '**/*'

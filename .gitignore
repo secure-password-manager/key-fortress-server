@@ -4,6 +4,9 @@
 # Environment variables
 .env
 
+# Static files
+**/static/
+
 # Jetbrains IDEs
 .idea/
 
