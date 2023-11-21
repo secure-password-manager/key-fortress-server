@@ -4,6 +4,8 @@ from django.urls import reverse
 
 from rest_framework.test import APITestCase
 
+from api.models import UserKey
+
 
 class TestLogoutAPIView(APITestCase):
 
@@ -16,6 +18,10 @@ class TestLogoutAPIView(APITestCase):
             'password': 'super-password'
         }
         self.user = get_user_model().objects.create_user(**self.user_data)
+        self.user_key = UserKey.objects.create(
+            user=self.user,
+            encrypted_symmetric_key='somelonggobbledegookthatlookslikeitsabase64encodedstring'
+        )
 
     def test_logout_success(self):
         response = self.client.post(self.login_url, self.user_data)

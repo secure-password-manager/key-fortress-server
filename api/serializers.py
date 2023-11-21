@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate, get_user_model
-from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, PrimaryKeyRelatedField, SlugRelatedField
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, \
+    SlugRelatedField
 
-from api.models import User, UserKey, VaultItem, VaultCollection
+from api.models import UserKey, VaultItem, VaultCollection
 
 
 class LoginSerializer(Serializer):
@@ -21,7 +22,15 @@ class LoginSerializer(Serializer):
         if user is None:
             raise AuthenticationFailed('Invalid email or password')
 
+        try:
+            user_key = UserKey.objects.get(user=user)
+        except ObjectDoesNotExist:
+            raise PermissionDenied("User's symmetric key not found")
+
         data['user'] = user
+        serializer = UserKeySerializer(user_key)
+        data['user_key'] = serializer.data
+
         return data
 
 
@@ -40,6 +49,12 @@ class SignupSerializer(ModelSerializer):
             encrypted_symmetric_key=self.validated_data['encrypted_symmetric_key']
         )
         return user
+
+
+class UserKeySerializer(ModelSerializer):
+    class Meta:
+        model = UserKey
+        fields = ['encrypted_symmetric_key', 'created_at', 'modified_at']
 
 
 class VaultItemSerializer(ModelSerializer):

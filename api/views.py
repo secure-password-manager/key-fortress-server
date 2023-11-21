@@ -9,9 +9,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .serializers import LoginSerializer, SignupSerializer, VaultCollectionSerializer, VaultItemSerializer
+from .serializers import LoginSerializer, SignupSerializer, UserKeySerializer, \
+    VaultCollectionSerializer, VaultItemSerializer
 
-from api.models import VaultItem, VaultCollection
+from api.models import UserKey, VaultItem, VaultCollection
 
 
 class LoginAPIView(APIView):
@@ -25,7 +26,10 @@ class LoginAPIView(APIView):
 
         user = serializer.validated_data['user']
         login(request, user)
-        return Response(status=status.HTTP_200_OK)
+
+        payload = serializer.validated_data['user_key']
+
+        return Response(data=payload, status=status.HTTP_200_OK)
 
 
 class LogoutAPIView(APIView):
@@ -41,6 +45,19 @@ class SignupAPIView(CreateAPIView):
 
     model = get_user_model()
     serializer_class = SignupSerializer
+
+
+class UserKeyAPIView(APIView):
+
+    def get(self, request):
+        try:
+            user_key = UserKey.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            raise PermissionDenied("User's symmetric key not found")
+
+        serializer = UserKeySerializer(user_key)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class VaultItemViewSet(ModelViewSet):
