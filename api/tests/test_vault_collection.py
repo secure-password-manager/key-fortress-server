@@ -25,7 +25,7 @@ class TestCreateVaultCollectionViewSet(APITestCase):
         })
         self.assertEqual(response.status_code, 201)
         vault_collection = VaultCollection.objects.filter(
-            user=self.user)
+            user=self.user, name='Work')
         self.assertEqual(len(vault_collection), 1)
         self.assertEqual(str(vault_collection.first().uuid),
                          response.data['uuid'])
@@ -37,7 +37,7 @@ class TestCreateVaultCollectionViewSet(APITestCase):
         self.assertIn('This field is required.', response.data['name'])
         vault_collection = VaultCollection.objects.filter(
             user=self.user)
-        self.assertEqual(len(vault_collection), 0)
+        self.assertEqual(len(vault_collection), 1)
 
     def test_vault_collection_create_name_blank(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
@@ -48,7 +48,7 @@ class TestCreateVaultCollectionViewSet(APITestCase):
         self.assertIn('This field may not be blank.', response.data['name'])
         vault_collection = VaultCollection.objects.filter(
             user=self.user)
-        self.assertEqual(len(vault_collection), 0)
+        self.assertEqual(len(vault_collection), 1)
 
     def test_vault_collection_create_user_not_logged_in(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
@@ -61,7 +61,7 @@ class TestCreateVaultCollectionViewSet(APITestCase):
             'Authentication credentials were not provided.', response.data['detail'])
         vault_collection = VaultCollection.objects.filter(
             user=self.user)
-        self.assertEqual(len(vault_collection), 0)
+        self.assertEqual(len(vault_collection), 1)
 
 
 class TestGetVaultCollectionViewSet(APITestCase):
@@ -85,7 +85,7 @@ class TestGetVaultCollectionViewSet(APITestCase):
         self.client.login(email='pippa1@gmail.com', password='super-password')
         response = self.client.get(self.vault_collections_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
 
         user_data = {
             'email': 'pippa2@gmail.com',
@@ -99,7 +99,7 @@ class TestGetVaultCollectionViewSet(APITestCase):
         self.client.login(email='pippa2@gmail.com', password='super-password')
         response = self.client.get(self.vault_collections_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3)
 
     def test_vault_collections_get_user_not_authenticated(self):
         self.client.login(email='pippa1@gmail.com', password='super-password')
