@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -80,8 +80,8 @@ class VaultItemViewSet(ModelViewSet):
                 VaultCollection.objects.get(user_id=self.request.user.id,
                                             uuid=serializer.validated_data['vault_collection'].uuid)
         except ObjectDoesNotExist:
-            raise PermissionDenied(
-                detail='User does not own VaultCollection', code=status.HTTP_403_FORBIDDEN)
+            raise NotFound(
+                detail='User does not own VaultCollection')
 
     def perform_create(self, serializer):
         self.validate_vault_collection(serializer)
