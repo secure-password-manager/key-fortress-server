@@ -149,7 +149,7 @@ class TestCreateVaultItemViewSet(APITestCase):
             'encrypted_data': 'encrypted data',
             'vault_collection': self.other_user_vc.uuid
         })
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
         self.assertIn('User does not own VaultCollection',
                       response.data['detail'])
         vault_item = VaultItem.objects.filter(
