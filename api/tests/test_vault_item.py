@@ -38,6 +38,8 @@ class TestCreateVaultItemViewSet(APITestCase):
         vault_item = VaultItem.objects.get(
             vault_collection_id=self.vault_collection.id)
         self.assertEqual(str(vault_item.uuid), response.data['uuid'])
+        self.assertIn('vault_collection_name', response.data)
+        self.assertEqual(response.data['vault_collection_name'], self.vault_collection.name)
         self.assertEqual(vault_item.vault_collection, self.vault_collection)
 
     def test_vault_item_create_vault_collection_uuid_missing(self):
