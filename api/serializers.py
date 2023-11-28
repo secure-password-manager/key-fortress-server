@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.serializers import Serializer, ModelSerializer, CharField, EmailField, \
-    SlugRelatedField
+    SlugRelatedField, StringRelatedField
 
 from api.models import UserKey, VaultItem, VaultCollection
 
@@ -62,14 +62,15 @@ class VaultItemSerializer(ModelSerializer):
     # JSON payloads would use 'vault_collection' for the uuid field, not 'vault_collection_uuid'
     vault_collection = SlugRelatedField(
         slug_field='uuid', queryset=VaultCollection.objects.all())
+    vault_collection_name = StringRelatedField(source='vault_collection')
 
     class Meta:
         model = VaultItem
         fields = ['encrypted_data', 'uuid',
-                  'vault_collection', 'created_at', 'modified_at']
+                  'vault_collection', 'vault_collection_name', 'created_at', 'modified_at']
 
         # Means that these fields are not expected on write requests but are returned on reads
-        read_only_fields = ['created_at', 'modified_at']
+        read_only_fields = ['created_at', 'modified_at', 'vault_collection_name']
 
 
 class VaultCollectionSerializer(ModelSerializer):
