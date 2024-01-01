@@ -11,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from .serializers import LoginSerializer, SignupSerializer, UserKeySerializer, \
     VaultCollectionSerializer, VaultItemSerializer
+from .throttling import SignupAnonRateThrottle
 
 from api.models import UserKey, VaultItem, VaultCollection
 
@@ -40,6 +41,7 @@ class LogoutAPIView(APIView):
 
 
 class SignupAPIView(CreateAPIView):
+    throttle_classes = [SignupAnonRateThrottle]
     authentication_classes = []
     permission_classes = [AllowAny]
 
